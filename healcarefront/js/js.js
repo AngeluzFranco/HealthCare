@@ -1,0 +1,1 @@
+//funciones basicas de javascript
