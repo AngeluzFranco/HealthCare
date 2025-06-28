@@ -67,6 +67,17 @@ public class UsuarioController {
         }
     }
 
+    @PutMapping("/{id}/password")
+    public ResponseEntity<?> actualizarPassword(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        String nuevaPassword = body.get("password");
+        try {
+            usuarioService.actualizarPassword(id, nuevaPassword);
+            return ResponseEntity.ok(Map.of("mensaje", "Contraseña actualizada correctamente"));
+        } catch (RuntimeException e) {
+            log.error("Error al actualizar contraseña: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+        }
+    }
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarUsuario(@PathVariable Long id) {
         log.info("DELETE /usuarios/{} - Eliminando usuario", id);
@@ -77,5 +88,16 @@ public class UsuarioController {
             log.error("Error al eliminar usuario: {}", e.getMessage());
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody Map<String, String> loginData) {
+        String email = loginData.get("email");
+        String password = loginData.get("password");
+        log.info("POST /usuarios/login - Intentando login para {}", email);
+        return usuarioService.login(email, password)
+                .<ResponseEntity<?>>map(usuario -> ResponseEntity.ok(usuario))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Credenciales inválidas")));
     }
 }

@@ -45,14 +45,17 @@ export default function RegisterPage() {
       return
     }
 
-    if (password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres")
+    // Validar contraseña: solo dígitos, 5 a 8 caracteres
+    if (!/^\d{5,8}$/.test(password)) {
+      setError("La contraseña debe tener solo dígitos y entre 5 y 8 caracteres")
       setLoading(false)
       return
     }
 
     try {
-      const usuarioCreado = await usuarioAPI.crear(formData)
+      // Agregar la contraseña al objeto de usuario
+      const usuarioConPassword = { ...formData, password }
+      const usuarioCreado = await usuarioAPI.crear(usuarioConPassword)
 
       // Guardar usuario en localStorage
       localStorage.setItem("currentUser", JSON.stringify(usuarioCreado))
@@ -122,8 +125,10 @@ export default function RegisterPage() {
                         type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        placeholder="••••••••"
+                        placeholder="•••••"
                         required
+                        pattern="\d{5,8}"
+                        title="Solo dígitos, entre 5 y 8 caracteres"
                       />
                       <Button
                         type="button"
@@ -148,8 +153,10 @@ export default function RegisterPage() {
                       type="password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="••••••••"
+                      placeholder="•••••"
                       required
+                      pattern="\d{5,8}"
+                      title="Solo dígitos, entre 5 y 8 caracteres"
                     />
                   </div>
                 </div>

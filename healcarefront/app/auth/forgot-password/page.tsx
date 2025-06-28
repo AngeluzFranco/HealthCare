@@ -12,18 +12,66 @@ import Link from "next/link"
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
+  const [error, setError] = useState("")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    setError("")
 
-    // Simular envío de email
-    setTimeout(() => {
+    // Validar contraseña: solo dígitos, 5 a 8 caracteres
+    if (!/^\d{5,8}$/.test(newPassword)) {
+      setError("La nueva contraseña debe tener solo dígitos y entre 5 y 8 caracteres")
+      setLoading(false)
+      return
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError("Las contraseñas no coinciden")
+      setLoading(false)
+      return
+    }
+
+    try {
+      // Buscar usuario por email usando el endpoint dedicado
+      const res = await fetch(`http://localhost:8080/api/usuarios/email/${encodeURIComponent(email)}`)
+      if (!res.ok) {
+        setError("Usuario no encontrado")
+        setLoading(false)
+        return
+      }
+      const usuario = await res.json()
+      if (!usuario || !usuario.id) {
+        setError("Usuario no encontrado")
+        setLoading(false)
+        return
+      }
+
+      // Solo enviar el campo password al nuevo endpoint
+      const passwordBody = {
+        password: newPassword,
+      }
+
+      // Mostrar en consola lo que se va a enviar
+      console.log("PUT a:", `http://localhost:8080/api/usuarios/${usuario.id}/password`)
+      console.log("Body:", JSON.stringify(passwordBody, null, 2))
+
+      await fetch(`http://localhost:8080/api/usuarios/${usuario.id}/password`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(passwordBody),
+      })
+
       setLoading(false)
       setSent(true)
-    }, 2000)
+    } catch (err) {
+      setError("Error al restablecer la contraseña")
+      setLoading(false)
+    }
   }
 
   return (
@@ -45,7 +93,7 @@ export default function ForgotPasswordPage() {
         <Card>
           <CardHeader>
             <CardTitle>¿Olvidaste tu contraseña?</CardTitle>
-            <CardDescription>Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña</CardDescription>
+            <CardDescription>Ingresa tu email y una nueva contraseña de solo dígitos (5 a 8 caracteres)</CardDescription>
           </CardHeader>
           <CardContent>
             {!sent ? (
@@ -61,20 +109,48 @@ export default function ForgotPasswordPage() {
                     required
                   />
                 </div>
-
+                <div>
+                  <Label htmlFor="newPassword">Nueva contraseña</Label>
+                  <Input
+                    id="newPassword"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="•••••"
+                    required
+                    pattern="\d{5,8}"
+                    title="Solo dígitos, entre 5 y 8 caracteres"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="•••••"
+                    required
+                    pattern="\d{5,8}"
+                    title="Solo dígitos, entre 5 y 8 caracteres"
+                  />
+                </div>
+                {error && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">{error}</div>
+                )}
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Enviando..." : "Enviar enlace de recuperación"}
+                  {loading ? "Enviando..." : "Restablecer contraseña"}
                 </Button>
               </form>
             ) : (
               <div className="text-center space-y-4">
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                   <Mail className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                  <h3 className="font-medium text-green-800">Email enviado</h3>
-                  <p className="text-sm text-green-700 mt-1">Hemos enviado un enlace de recuperación a {email}</p>
+                  <h3 className="font-medium text-green-800">Contraseña restablecida</h3>
+                  <p className="text-sm text-green-700 mt-1">Tu contraseña ha sido cambiada exitosamente para {email}</p>
                 </div>
                 <p className="text-sm text-gray-600">
-                  Revisa tu bandeja de entrada y sigue las instrucciones para restablecer tu contraseña.
+                  Ahora puedes iniciar sesión con tu nueva contraseña.
                 </p>
               </div>
             )}
