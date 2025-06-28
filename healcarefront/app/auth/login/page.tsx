@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Heart, ArrowLeft, Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
-import { usuarioAPI } from "@/lib/api"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -27,18 +26,39 @@ export default function LoginPage() {
     setLoading(true)
     setError("")
 
-    try {
-    
-      const usuarios = await usuarioAPI.obtenerTodos()
-      const usuario = usuarios.find((u) => u.email === formData.email)
+    // Validar formato de contraseña: solo dígitos, 5 a 8 caracteres
+    if (!/^\d{5,8}$/.test(formData.password)) {
+      setError("La contraseña debe tener solo dígitos y entre 5 y 8 caracteres")
+      setLoading(false)
+      return
+    }
 
-      if (usuario) {
-        
-        localStorage.setItem("currentUser", JSON.stringify(usuario))
-        router.push("/dashboard")
-      } else {
-        setError("Usuario no encontrado. ¿Necesitas crear una cuenta?")
+    try {
+      // Login usando el endpoint correcto
+      const response = await fetch("http://localhost:8080/api/usuarios/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      })
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          setError("Email o contraseña incorrectos")
+        } else {
+          setError("Error al iniciar sesión")
+        }
+        setLoading(false)
+        return
       }
+
+      const usuario = await response.json()
+      localStorage.setItem("currentUser", JSON.stringify(usuario))
+      router.push("/dashboard")
     } catch (err) {
       setError("Error al conectar con el servidor")
       console.error(err)
@@ -97,8 +117,10 @@ export default function LoginPage() {
                     type={showPassword ? "text" : "password"}
                     value={formData.password}
                     onChange={(e) => handleChange("password", e.target.value)}
-                    placeholder="••••••••"
+                    placeholder="•••••"
                     required
+                    pattern="\d{5,8}"
+                    title="Solo dígitos, entre 5 y 8 caracteres"
                   />
                   <Button
                     type="button"
@@ -142,13 +164,7 @@ export default function LoginPage() {
           </CardContent>
         </Card>
 
-        {/* Demo credentials */}
-        <Card className="mt-4 bg-blue-50 border-blue-200">
-          <CardContent className="pt-4">
-            <p className="text-sm text-blue-800 font-medium mb-2">Para pruebas:</p>
-            <p className="text-xs text-blue-700">Usa cualquier email de un usuario existente en la base de datos</p>
-          </CardContent>
-        </Card>
+       
       </div>
     </div>
   )

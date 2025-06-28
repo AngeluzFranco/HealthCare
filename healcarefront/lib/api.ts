@@ -46,6 +46,7 @@ export interface Usuario {
   alturaCm: number
   nivelActividad: string
   objetivoSalud: string
+  password?: string 
   fechaCreacion?: string
   fechaActualizacion?: string
 }
@@ -95,6 +96,51 @@ export interface DatoCategoria {
   total: number
   completados: number
   porcentaje: number
+}
+
+// Interfaces para notificaciones
+export interface Notificacion {
+  id?: number
+  usuario: { id: number }
+  habito?: Habito
+  tipo: string
+  titulo: string
+  mensaje: string
+  mensajeAlexa?: string
+  estado: string
+  prioridad: string
+  canalesEntrega: string
+  programadaPara?: string
+  enviadaEn?: string
+  leidaEn?: string
+  leidaEnAlexa?: string
+  leidaEnMovil?: string
+  leidaEnWeb?: string
+  esRecurrente: boolean
+  patronRecurrencia?: string
+  fechaCreacion?: string
+}
+
+export interface ConfiguracionNotificacion {
+  id?: number
+  usuario: { id: number }
+  notificacionesHabilitadas: boolean
+  pushHabilitado: boolean
+  alexaHabilitado: boolean
+  emailHabilitado: boolean
+  smsHabilitado: boolean
+  horarioMatutino: string
+  horarioVespertino: string
+  horarioNocturno: string
+  recordatoriosHabitos: boolean
+  notificacionesLogros: boolean
+  motivacionDiaria: boolean
+  resumenSemanal: boolean
+  incluirFinesSemana: boolean
+  alexaDeviceId?: string
+  alexaUserId?: string
+  fcmToken?: string
+  apnsToken?: string
 }
 
 // Funciones para usuarios
@@ -246,4 +292,27 @@ export const verificarConexion = async (): Promise<boolean> => {
     console.error("❌ No se puede conectar al backend:", error)
     return false
   }
+}
+
+
+export const notificacionAPI = {
+  obtenerPorUsuario: async (usuarioId: number): Promise<Notificacion[]> => {
+    const response = await handleFetch(`${API_BASE_URL}/notificaciones/usuario/${usuarioId}`)
+    return response.json()
+  },
+  obtenerNoLeidas: async (usuarioId: number): Promise<Notificacion[]> => {
+    const response = await handleFetch(`${API_BASE_URL}/notificaciones/usuario/${usuarioId}/no-leidas`)
+    return response.json()
+  },
+  marcarComoLeida: async (notificacionId: number, canal: string): Promise<void> => {
+    await handleFetch(`${API_BASE_URL}/notificaciones/${notificacionId}/marcar-leida`, {
+      method: "POST",
+      body: JSON.stringify({ canal }),
+    })
+  },
+
+  obtenerConfiguracionNotificacion: async (usuarioId: number): Promise<ConfiguracionNotificacion> => {
+    const response = await handleFetch(`${API_BASE_URL}/notificaciones/configuracion/usuario/${usuarioId}`)
+    return response.json()
+  },
 }

@@ -49,6 +49,9 @@ public class Usuario {
     
     @Column(name = "objetivo_salud", length = 200)
     private String objetivoSalud;
+
+    @Column(nullable = false, length = 10)
+    private String password;
     
     @CreationTimestamp
     @Column(name = "fecha_creacion", updatable = false)

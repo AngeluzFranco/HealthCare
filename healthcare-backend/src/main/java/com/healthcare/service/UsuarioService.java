@@ -77,4 +77,16 @@ public class UsuarioService {
         
         usuarioRepository.deleteById(id);
     }
+
+    public Optional<Usuario> login(String email, String password) {
+        log.info("Intentando login para email: {}", email);
+        return usuarioRepository.findByEmailAndPassword(email, password);
+    }
+
+    public void actualizarPassword(Long id, String nuevaPassword) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + id));
+        usuario.setPassword(nuevaPassword);
+        usuarioRepository.save(usuario);
+    }
 }

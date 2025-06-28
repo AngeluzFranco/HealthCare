@@ -24,6 +24,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import type { Usuario } from "@/lib/api"
+import { NotificacionesPanel } from "@/components/notificaciones-panel"
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -59,7 +60,6 @@ export default function DashboardPage() {
     )
   }
 
-  // Add this after the currentUser check
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -71,7 +71,6 @@ export default function DashboardPage() {
     )
   }
 
-  // Update the error display section
   if (error && !habitos.length) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -93,7 +92,6 @@ export default function DashboardPage() {
     )
   }
 
-  // Mostrar error de conexión si existe
   if (backendConnected === false) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -121,17 +119,17 @@ export default function DashboardPage() {
   const habitoAgua = habitos.find((h) => h.categoria === "hidratacion") || {
     metaDiaria: "2000 ml",
     unidadMedida: "ml",
-    id: undefined, 
+    id: undefined,
   }
   const habitoEjercicio = habitos.find((h) => h.categoria === "ejercicio") || {
     metaDiaria: "30 min",
     unidadMedida: "min",
-    id: undefined, 
+    id: undefined,
   }
   const habitoSueno = habitos.find((h) => h.categoria === "sueno") || {
     metaDiaria: "8 hrs",
     unidadMedida: "hrs",
-    id: undefined, // Fix: add id property for fallback
+    id: undefined,
   }
 
   const registroAgua = registros.find((r) => r.habito.id === habitoAgua?.id)
@@ -215,10 +213,11 @@ export default function DashboardPage() {
                   Ver Estadísticas
                 </Button>
               </Link>
-              <Link href="/dashboard/reminders">
+              {/* Cambiado: ahora muestra Notificaciones en vez de Recordatorios */}
+              <Link href="/dashboard/notifications">
                 <Button variant="ghost" className="w-full justify-start text-left">
                   <Bell className="mr-3 h-4 w-4" />
-                  Recordatorios
+                  Notificaciones
                 </Button>
               </Link>
               <Link href="/dashboard/reports">
@@ -234,6 +233,16 @@ export default function DashboardPage() {
                 </Button>
               </Link>
             </nav>
+          </div>
+
+          {/* Mini menú de notificaciones */}
+          <div className="mb-6">
+            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Notificaciones</h2>
+            <NotificacionesPanel
+              usuarioId={currentUser.id!}
+              mostrarSoloNoLeidas={true}
+              className="border-0 shadow-none bg-gray-50"
+            />
           </div>
 
           {/* Skill de Alexa */}
@@ -458,7 +467,6 @@ export default function DashboardPage() {
                       <p className="text-sm text-gray-600 mb-3">
                         Registra hábitos sobre la marcha con nuestra app móvil nativa para Android.
                       </p>
-                 
                     </div>
                   </div>
 
@@ -475,7 +483,6 @@ export default function DashboardPage() {
                         <p>• "¿Cómo voy con mis metas?"</p>
                         <p>• "Recuérdame beber agua"</p>
                       </div>
-                    
                     </div>
                   </div>
                 </div>
