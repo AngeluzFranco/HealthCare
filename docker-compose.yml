@@ -1,0 +1,35 @@
+services:
+  mysql:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: healthcare_db
+    networks:
+      - healthcare
+    volumes:
+      - mysqlHealthcare:/var/lib/mysql
+    ports:
+      - "3307:3306"
+
+  backend:
+    build:
+      context: ./healthcare-backend
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: healthcare_db
+      DB_USERNAME: root
+      DB_PASSWORD: root
+    ports:
+      - "8080:8080"
+    networks:
+      - healthcare
+    depends_on:
+      - mysql
+
+volumes:
+  mysqlHealthcare:
+
+networks:
+  healthcare:
+    external: true
